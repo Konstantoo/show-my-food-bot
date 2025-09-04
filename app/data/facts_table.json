@@ -1,0 +1,242 @@
+{
+  "facts": [
+    {
+      "match": {
+        "dish_names": ["паста карбонара"],
+        "ingredients": ["паста", "бекон", "яйцо"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Карбонара была изобретена в 1944 году в Риме угольщиками (carbonai), которые добавляли в пасту бекон и яйца для быстрого и сытного обеда.",
+          "sources": ["https://www.bbc.com/travel/article/20210315-the-roman-dish-that-wasnt-invented-in-rome"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "ingredient",
+          "text": "Сыр пармезан в карбонаре должен быть настоящим Parmigiano-Reggiano, который созревает минимум 12 месяцев.",
+          "sources": ["https://www.parmigianoreggiano.com/"],
+          "verified": true,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["борщ"],
+        "ingredients": ["свекла", "капуста", "мясо"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Борщ упоминается в русских летописях с XVI века, но его современный вид сформировался в XIX веке.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100001"],
+          "verified": true,
+          "confidence": 0.85
+        },
+        {
+          "type": "ingredient",
+          "text": "Свекла в борще не только придает цвет, но и содержит бетаин, который полезен для печени.",
+          "sources": ["https://www.healthline.com/nutrition/beetroot-benefits"],
+          "verified": true,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["плов"],
+        "ingredients": ["рис", "мясо", "морковь"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Плов происходит из Персии (современный Иран) и распространился по всей Центральной Азии и Ближнему Востоку.",
+          "sources": ["https://www.britannica.com/topic/pilaf"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "event",
+          "text": "В Узбекистане плов включен в список нематериального культурного наследия ЮНЕСКО.",
+          "sources": ["https://ich.unesco.org/en/RL/oshpaz-and-culture-of-sharing-food-in-uzbekistan-01595"],
+          "verified": true,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["салат цезарь"],
+        "ingredients": ["салат", "сыр пармезан", "сухарики"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Салат Цезарь был изобретен в 1924 году итальянским иммигрантом Цезарем Кардини в Мексике.",
+          "sources": ["https://www.foodandwine.com/recipes/caesar-salad"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "celebrity",
+          "text": "Джулия Чайлд называла салат Цезарь 'самым знаменитым салатом в мире'.",
+          "sources": ["https://www.juliachildfoundation.org/", "https://www.foodandwine.com/recipes/caesar-salad"],
+          "verified": true,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["пицца маргарита"],
+        "ingredients": ["тесто", "томаты", "моцарелла"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Пицца Маргарита была создана в 1889 году в честь королевы Маргариты Савойской, используя цвета итальянского флага.",
+          "sources": ["https://www.pizzanapoletana.org/"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "celebrity",
+          "text": "Пицца Маргарита - любимое блюдо многих знаменитостей, включая Софи Лорен.",
+          "sources": ["https://www.vanityfair.com/", "https://www.foodandwine.com/"],
+          "verified": false,
+          "confidence": 0.6
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["суши"],
+        "ingredients": ["рис", "рыба", "нори"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Современные суши появились в Токио в XIX веке, но их предшественники существовали в Японии с VIII века.",
+          "sources": ["https://www.japan-guide.com/e/e2038.html"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "ingredient",
+          "text": "Рис для суши должен быть специальным короткозернистым рисом с высоким содержанием крахмала.",
+          "sources": ["https://www.japan-guide.com/e/e2038.html"],
+          "verified": true,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["шашлык"],
+        "ingredients": ["мясо", "лук", "специи"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Шашлык происходит от турецкого слова 'şiş' (вертел) и является традиционным блюдом многих народов Кавказа и Средней Азии.",
+          "sources": ["https://www.britannica.com/topic/kebab"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "ingredient",
+          "text": "Лучшее мясо для шашлыка - это мясо молодых животных, которое более нежное и быстрее готовится.",
+          "sources": ["https://www.foodnetwork.com/recipes/articles/how-to-make-kebab"],
+          "verified": true,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["блины"],
+        "ingredients": ["мука", "яйца", "молоко"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Блины в России традиционно готовят на Масленицу - праздник проводов зимы, который длится неделю.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100002"],
+          "verified": true,
+          "confidence": 0.9
+        },
+        {
+          "type": "ingredient",
+          "text": "Традиционные русские блины готовят на дрожжах, что делает их более пышными и пористыми.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100002"],
+          "verified": true,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["пельмени"],
+        "ingredients": ["тесто", "мясной фарш", "лук"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Пельмени пришли в Россию из Китая через Сибирь и стали национальным блюдом в XVII веке.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100003"],
+          "verified": true,
+          "confidence": 0.85
+        },
+        {
+          "type": "ingredient",
+          "text": "Классические пельмени готовят из смеси говядины и свинины в соотношении 1:1.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100003"],
+          "verified": true,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "match": {
+        "dish_names": ["оладьи"],
+        "ingredients": ["мука", "кефир", "яйца"]
+      },
+      "facts": [
+        {
+          "type": "history",
+          "text": "Оладьи - одно из древнейших русских блюд, упоминаемое в летописях с X века.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100004"],
+          "verified": true,
+          "confidence": 0.8
+        },
+        {
+          "type": "ingredient",
+          "text": "Кефир в оладьях не только делает тесто пышным, но и придает характерный кисловатый вкус.",
+          "sources": ["https://www.russianfood.com/recipes/recipe.php?rid=100004"],
+          "verified": true,
+          "confidence": 0.85
+        }
+      ]
+    }
+  ],
+  "fallback_facts": [
+    {
+      "type": "ingredient",
+      "text": "Свежие ингредиенты содержат больше витаминов и минералов, чем обработанные продукты.",
+      "sources": ["https://www.healthline.com/nutrition/whole-foods-vs-processed-foods"],
+      "verified": true,
+      "confidence": 0.9
+    },
+    {
+      "type": "history",
+      "text": "Многие традиционные блюда создавались как способ сохранить продукты в течение долгого времени.",
+      "sources": ["https://www.britannica.com/topic/food-preservation"],
+      "verified": true,
+      "confidence": 0.85
+    }
+  ]
+}
+
+
