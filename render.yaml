@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: photo-advice-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_photo_bot.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BOT_MODE
+        value: polling
+      - key: DEBUG
+        value: "False"
+      - key: LOG_LEVEL
+        value: INFO
+    autoDeploy: true
+    branch: main

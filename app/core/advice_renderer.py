@@ -25,7 +25,7 @@ class AdviceRenderer:
             'gradient_end': '#764ba2'
         }
     
-    def render_advice_card(self, analysis_result) -> bytes:
+    def render_advice_card(self, analysis_result, quote=None) -> bytes:
         """Создает красивую карточку с советами по фотографии"""
         try:
             # Создаем изображение
@@ -44,9 +44,13 @@ class AdviceRenderer:
             # Главный совет
             self._draw_main_advice(draw, analysis_result.main_advice)
             
-            # Дополнительные советы
-            if analysis_result.additional_advice:
-                self._draw_additional_advice(draw, analysis_result.additional_advice)
+            # Цитата мастера (если есть)
+            if quote:
+                self._draw_master_quote(draw, quote)
+            else:
+                # Дополнительные советы (если нет цитаты)
+                if analysis_result.additional_advice:
+                    self._draw_additional_advice(draw, analysis_result.additional_advice)
             
             # Подвал
             self._draw_footer(draw)
@@ -275,6 +279,77 @@ class AdviceRenderer:
                 bullet_text = bullet_text[:80] + "..."
             
             draw.text((left_margin, y), bullet_text, font=advice_font, fill=self.colors['text_primary'])
+    
+    def _draw_master_quote(self, draw, quote):
+        """Рисует цитату мастера фотографии"""
+        try:
+            quote_font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 22)
+            author_font = ImageFont.truetype("/System/Library/Fonts/Arial Bold.ttf", 20)
+            title_font = ImageFont.truetype("/System/Library/Fonts/Arial Bold.ttf", 24)
+        except:
+            quote_font = ImageFont.load_default()
+            author_font = ImageFont.load_default()
+            title_font = ImageFont.load_default()
+        
+        # Позиция
+        quote_y = 420
+        left_margin = 60
+        right_margin = self.card_width - 60
+        
+        # Фон для цитаты
+        quote_bg_height = 140
+        draw.rounded_rectangle(
+            [left_margin - 15, quote_y - 15, right_margin + 15, quote_y + quote_bg_height],
+            radius=12,
+            fill=(255, 255, 255, 190)
+        )
+        
+        # Заголовок цитаты
+        quote_title = "🎭 Слова мастера"
+        draw.text((left_margin, quote_y), quote_title, font=title_font, fill=self.colors['primary'])
+        
+        # Текст цитаты (обрезаем если слишком длинный)
+        quote_text = f"«{quote['text']}»"
+        if len(quote_text) > 120:
+            quote_text = quote_text[:120] + "...»"
+        
+        # Разбиваем текст на строки
+        words = quote_text.split()
+        lines = []
+        current_line = ""
+        
+        for word in words:
+            test_line = current_line + (" " if current_line else "") + word
+            bbox = draw.textbbox((0, 0), test_line, font=quote_font)
+            if bbox[2] - bbox[0] < right_margin - left_margin - 20:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        
+        if current_line:
+            lines.append(current_line)
+        
+        # Рисуем строки цитаты
+        for i, line in enumerate(lines[:2]):  # Максимум 2 строки
+            y = quote_y + 30 + i * 24
+            draw.text((left_margin, y), line, font=quote_font, fill=self.colors['text_primary'])
+        
+        # Автор цитаты
+        author_text = f"— {quote['author']}, {quote['profession']}"
+        author_y = quote_y + 85
+        draw.text((left_margin, author_y), author_text, font=author_font, fill=self.colors['secondary'])
+        
+        # Контекст (если есть место)
+        if quote.get('context') and len(lines) <= 1:
+            context_y = quote_y + 110
+            context_text = f"💡 {quote['context'][:50]}..."
+            try:
+                context_font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", 16)
+            except:
+                context_font = ImageFont.load_default()
+            draw.text((left_margin, context_y), context_text, font=context_font, fill=self.colors['text_secondary'])
     
     def _draw_footer(self, draw):
         """Рисует подвал карточки"""

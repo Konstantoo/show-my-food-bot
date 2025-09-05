@@ -54,22 +54,22 @@ class PhotoAdviceBot:
         welcome_text = """
 📸 **Добро пожаловать в Photo Advice Bot!**
 
-Я помогу вам улучшить ваши фотографии, дам советы по композиции, освещению и технике съемки.
+Я анализирую ваши фотографии и даю советы вместе с **мудростью великих мастеров** — фотографов, художников, режиссеров и операторов!
 
-**📷 Как пользоваться:**
-• Отправьте фото для анализа
-• Получите детальные советы по улучшению
-• Узнайте о технических аспектах съемки
+**📷 Что я делаю:**
+• Анализирую композицию, освещение, технику
+• Подбираю **цитаты известных мастеров**, подходящие к вашему фото
+• Даю персональные советы по улучшению
+
+**🎭 Мастера, чьи слова вы услышите:**
+• Анри Картье-Брессон, Ансель Адамс
+• Стэнли Кубрик, Роджер Дикинс  
+• Леонардо да Винчи, Пикассо
+• И многие другие...
 
 **🔍 Команды:**
 /help - помощь
 /reset - начать заново
-
-**Примеры советов:**
-• Композиция и правило третей
-• Настройки камеры
-• Освещение и экспозиция
-• Постобработка
         """
         
         await message.answer(welcome_text)
@@ -130,19 +130,31 @@ class PhotoAdviceBot:
             image_data = FileUtils.resize_image_if_needed(image_data)
             
             # Анализируем фото
-            await message.answer("🔍 Анализирую фото...")
+            status_message = await message.answer("🔍 Анализирую фото...")
             
-            analysis_result = await self.analyzer.analyze_photo(image_data)
-            
-            if not analysis_result:
-                await message.answer("❌ Не удалось проанализировать фото. Попробуйте другое фото.")
+            try:
+                analysis_result = await self.analyzer.analyze_photo(image_data)
+                
+                if not analysis_result:
+                    await status_message.edit_text("❌ Не удалось проанализировать фото. Попробуйте другое фото или проверьте качество изображения.")
+                    return
+                    
+                # Удаляем сообщение о статусе
+                await status_message.delete()
+                
+            except Exception as e:
+                logger.error(f"Ошибка анализа фото: {e}")
+                await status_message.edit_text("❌ Произошла ошибка при анализе фото. Попробуйте еще раз.")
                 return
             
+            # Получаем вдохновляющую цитату
+            quote = await self.analyzer.get_inspirational_quote(analysis_result)
+            
             # Формируем текстовый ответ
-            advice_text = self._format_advice_text(analysis_result)
+            advice_text = self._format_advice_text(analysis_result, quote)
             
             # Создаем карточку с советами
-            card_data = self.renderer.render_advice_card(analysis_result)
+            card_data = self.renderer.render_advice_card(analysis_result, quote)
             
             # Отправляем результат
             await message.answer_photo(
@@ -153,12 +165,12 @@ class PhotoAdviceBot:
             # Создаем клавиатуру с дополнительными действиями
             keyboard = InlineKeyboardBuilder()
             keyboard.add(InlineKeyboardButton(
-                text="💡 Еще советы",
-                callback_data="more_advice"
+                text="🎭 Другая цитата",
+                callback_data="more_quotes"
             ))
             keyboard.add(InlineKeyboardButton(
-                text="🎨 Стиль",
-                callback_data="style_advice"
+                text="💡 Еще советы",
+                callback_data="more_advice"
             ))
             keyboard.add(InlineKeyboardButton(
                 text="📷 Техника",
@@ -200,8 +212,8 @@ class PhotoAdviceBot:
                 "/reset - начать заново"
             )
     
-    def _format_advice_text(self, analysis_result) -> str:
-        """Форматирует текст с советами"""
+    def _format_advice_text(self, analysis_result, quote=None) -> str:
+        """Форматирует текст с советами и цитатой мастера"""
         text = f"📸 **Анализ фотографии**\n\n"
         
         # Основной совет
@@ -214,10 +226,16 @@ class PhotoAdviceBot:
         text += f"• Техника: {analysis_result.technical_score}/10\n"
         text += f"• Общая оценка: {analysis_result.overall_score}/10\n\n"
         
-        # Дополнительные советы
+        # Цитата мастера
+        if quote:
+            text += f"🎭 **Слова мастера:**\n"
+            text += f"*«{quote['text']}»*\n\n"
+            text += f"— **{quote['author']}**, {quote['profession']}\n\n"
+        
+        # Дополнительные советы (сокращаем, чтобы место было для цитаты)
         if analysis_result.additional_advice:
-            text += f"🔧 **Дополнительные советы:**\n"
-            for advice in analysis_result.additional_advice[:3]:
+            text += f"🔧 **Советы:**\n"
+            for advice in analysis_result.additional_advice[:2]:
                 text += f"• {advice}\n"
         
         return text
@@ -229,7 +247,30 @@ class PhotoAdviceBot:
         data = callback.data
         session = self.session_store.get_session(callback.from_user.id)
         
-        if data == "more_advice":
+        if data == "more_quotes":
+            # Дополнительные цитаты
+            if not session.current_photo_analysis:
+                await callback.message.answer("❌ Сначала проанализируйте фото.")
+                return
+            
+            try:
+                quotes = await self.analyzer.get_multiple_quotes(session.current_photo_analysis, 2)
+                
+                if quotes:
+                    quotes_text = "🎭 **Мудрость мастеров фотографии:**\n\n"
+                    for i, quote in enumerate(quotes, 1):
+                        quotes_text += f"**{i}.** *«{quote['text']}»*\n"
+                        quotes_text += f"— **{quote['author']}**, {quote['profession']}\n\n"
+                    
+                    await callback.message.answer(quotes_text)
+                else:
+                    await callback.message.answer("😔 Не удалось найти новые цитаты. Попробуйте позже.")
+            
+            except Exception as e:
+                logger.error(f"Ошибка получения цитат: {e}")
+                await callback.message.answer("❌ Ошибка получения цитат. Попробуйте позже.")
+        
+        elif data == "more_advice":
             # Дополнительные советы
             if not session.current_photo_analysis:
                 await callback.message.answer("❌ Сначала проанализируйте фото.")

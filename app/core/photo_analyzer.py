@@ -7,6 +7,7 @@ from io import BytesIO
 import aiohttp
 
 from app.config import Config
+from .quotes_provider import QuotesProvider
 
 
 class PhotoAnalysisResult:
@@ -37,6 +38,7 @@ class PhotoAnalyzer:
     def __init__(self):
         self.openai_api_key = Config.OPENAI_API_KEY
         self.base_url = "https://api.openai.com/v1/chat/completions"
+        self.quotes_provider = QuotesProvider()
         
         # База знаний советов по фотографии
         self.advice_database = {
@@ -117,6 +119,11 @@ class PhotoAnalyzer:
     
     async def _analyze_with_openai(self, image_data: bytes) -> Optional[PhotoAnalysisResult]:
         """Анализирует фото с помощью OpenAI Vision API"""
+        # Проверяем, есть ли валидный API ключ
+        if not self.openai_api_key or self.openai_api_key == "your_openai_api_key_here" or len(self.openai_api_key) < 50:
+            print("OpenAI API ключ не настроен, используем локальный анализ")
+            return None
+            
         try:
             # Кодируем изображение в base64
             image_base64 = base64.b64encode(image_data).decode('utf-8')
@@ -170,7 +177,8 @@ class PhotoAnalyzer:
                 "temperature": 0.3
             }
             
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=30)  # 30 секунд таймаут
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(self.base_url, headers=headers, json=payload) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -189,49 +197,126 @@ class PhotoAnalyzer:
                                 mood=analysis_data.get('mood', 'нейтральное'),
                                 style_suggestions=analysis_data.get('style_suggestions', [])
                             )
-                        except json.JSONDecodeError:
+                        except json.JSONDecodeError as e:
+                            print(f"Ошибка парсинга JSON от OpenAI: {e}")
                             return None
+                    elif response.status == 403:
+                        print("OpenAI API: Доступ запрещен (проверьте API ключ и биллинг)")
+                        return None
+                    elif response.status == 429:
+                        print("OpenAI API: Превышен лимит запросов")
+                        return None
                     else:
-                        print(f"OpenAI API error: {response.status}")
+                        error_text = await response.text()
+                        print(f"OpenAI API error {response.status}: {error_text}")
                         return None
                         
+        except aiohttp.ClientError as e:
+            print(f"Ошибка соединения с OpenAI API: {e}")
+            return None
         except Exception as e:
-            print(f"Ошибка анализа через OpenAI: {e}")
+            print(f"Неожиданная ошибка OpenAI API: {e}")
             return None
     
     def _analyze_locally(self, image_info: dict) -> PhotoAnalysisResult:
-        """Локальный анализ фотографии"""
+        """Улучшенный локальный анализ фотографии"""
         # Анализируем аспектное соотношение
-        aspect_ratio = image_info['aspect_ratio']
+        aspect_ratio = image_info.get('aspect_ratio', 1.0)
+        width = image_info.get('width', 1920)
+        height = image_info.get('height', 1080)
         
-        # Определяем основной совет на основе характеристик
-        if aspect_ratio > 1.5:  # Широкоформатное
-            main_advice = "Отличное широкоформатное фото! Попробуйте использовать правило третей для размещения объектов."
-        elif aspect_ratio < 0.8:  # Портретное
-            main_advice = "Хорошее портретное фото! Обратите внимание на освещение лица и фон."
-        else:  # Квадратное или близкое к квадрату
-            main_advice = "Интересная композиция! Экспериментируйте с симметрией и центрированием."
+        # Более детальный анализ композиции
+        composition_tips = []
+        lighting_tips = []
+        technical_tips = []
         
-        # Генерируем случайные оценки (7-9 для хороших фото)
-        composition_score = random.randint(6, 9)
-        lighting_score = random.randint(6, 9)
-        technical_score = random.randint(7, 9)
+        # Анализ по аспектному соотношению
+        if aspect_ratio > 1.8:  # Очень широкое
+            main_advice = "Панорамное фото! Используйте ведущие линии для направления взгляда зрителя через кадр."
+            composition_tips.extend([
+                "Размещайте важные объекты на пересечениях правила третей",
+                "Используйте передний план для создания глубины"
+            ])
+        elif aspect_ratio > 1.3:  # Широкоформатное
+            main_advice = "Хорошее широкоформатное фото! Экспериментируйте с горизонтальными линиями и симметрией."
+            composition_tips.extend([
+                "Попробуйте правило третей для размещения горизонта",
+                "Используйте диагональные линии для динамики"
+            ])
+        elif aspect_ratio < 0.7:  # Портретное
+            main_advice = "Отличная портретная ориентация! Обратите внимание на вертикальные линии и баланс."
+            composition_tips.extend([
+                "Размещайте главный объект не в центре кадра",
+                "Используйте вертикальные элементы для усиления композиции"
+            ])
+        else:  # Квадратное или близкое к нему
+            main_advice = "Сбалансированная композиция! Попробуйте центрированное размещение или симметрию."
+            composition_tips.extend([
+                "Экспериментируйте с симметричной композицией",
+                "Используйте центральное размещение для статичных сцен"
+            ])
+        
+        # Анализ разрешения
+        total_pixels = width * height
+        if total_pixels < 1000000:  # Меньше 1MP
+            technical_tips.append("Попробуйте снимать в более высоком разрешении для лучшего качества")
+        elif total_pixels > 10000000:  # Больше 10MP
+            technical_tips.append("Отличное разрешение! Используйте его для детальных снимков")
+        
+        # Генерируем реалистичные оценки
+        base_composition = 7
+        base_lighting = 7  
+        base_technical = 7
+        
+        # Модификаторы на основе характеристик
+        if aspect_ratio in [1.0, 1.33, 1.5, 0.75]:  # Стандартные соотношения
+            base_composition += 1
+            
+        if total_pixels > 5000000:  # Хорошее разрешение
+            base_technical += 1
+        elif total_pixels < 500000:  # Низкое разрешение
+            base_technical -= 1
+            
+        # Добавляем случайность
+        composition_score = max(1, min(10, base_composition + random.randint(-1, 2)))
+        lighting_score = max(1, min(10, base_lighting + random.randint(-1, 2)))
+        technical_score = max(1, min(10, base_technical + random.randint(-1, 1)))
         overall_score = (composition_score + lighting_score + technical_score) // 3
         
-        # Выбираем случайные дополнительные советы
-        additional_advice = random.sample(
+        # Собираем все советы
+        all_advice = composition_tips + lighting_tips + technical_tips
+        
+        # Добавляем общие советы
+        general_advice = random.sample(
             self.advice_database['composition'] + 
             self.advice_database['lighting'] + 
             self.advice_database['technical'],
-            random.randint(2, 4)
+            random.randint(1, 2)
         )
+        all_advice.extend(general_advice)
         
-        # Определяем настроение
-        moods = ['спокойное', 'динамичное', 'романтичное', 'драматичное', 'минималистичное']
+        # Ограничиваем количество советов
+        additional_advice = all_advice[:4]
+        
+        # Определяем настроение на основе соотношения сторон
+        if aspect_ratio > 1.5:
+            moods = ['панорамное', 'широкое', 'просторное', 'открытое']
+        elif aspect_ratio < 0.8:
+            moods = ['интимное', 'вертикальное', 'динамичное', 'элегантное']
+        else:
+            moods = ['сбалансированное', 'гармоничное', 'стабильное', 'классическое']
+        
         mood = random.choice(moods)
         
-        # Предложения по стилю
-        style_suggestions = random.sample(self.style_advice, random.randint(1, 3))
+        # Предложения по стилю на основе анализа
+        if aspect_ratio > 1.5:
+            style_base = ["пейзажная фотография", "архитектурная съемка", "панорамы"]
+        elif aspect_ratio < 0.8:
+            style_base = ["портретная фотография", "стрит-фотография", "модная съемка"]
+        else:
+            style_base = ["минимализм", "симметрия", "геометрия"]
+            
+        style_suggestions = random.sample(style_base + self.style_advice[:2], min(3, len(style_base) + 2))
         
         return PhotoAnalysisResult(
             main_advice=main_advice,
@@ -280,3 +365,38 @@ class PhotoAnalyzer:
             return random.sample(available_advice, min(3, len(available_advice)))
         else:
             return ["Продолжайте практиковаться и экспериментировать!"]
+    
+    async def get_inspirational_quote(self, analysis_result, context: str = "") -> Optional[dict]:
+        """Получает вдохновляющую цитату мастера фотографии"""
+        try:
+            quote = await self.quotes_provider.get_relevant_quote(analysis_result, context)
+            if quote:
+                return {
+                    "text": quote.text,
+                    "author": quote.author,
+                    "profession": quote.profession,
+                    "context": quote.context,
+                    "relevance": quote.relevance_score
+                }
+        except Exception as e:
+            print(f"Ошибка получения цитаты: {e}")
+        
+        return None
+    
+    async def get_multiple_quotes(self, analysis_result, count: int = 2) -> List[dict]:
+        """Получает несколько релевантных цитат"""
+        try:
+            quotes = await self.quotes_provider.get_multiple_quotes(analysis_result, count)
+            return [
+                {
+                    "text": quote.text,
+                    "author": quote.author,
+                    "profession": quote.profession,
+                    "context": quote.context,
+                    "relevance": quote.relevance_score
+                }
+                for quote in quotes
+            ]
+        except Exception as e:
+            print(f"Ошибка получения цитат: {e}")
+            return []
