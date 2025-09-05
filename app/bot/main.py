@@ -18,7 +18,8 @@ from app.utils.file_utils import FileUtils
 from app.core.rules import ValidationRules, BusinessRules
 
 # Настройка логирования
-logging.basicConfig(level=getattr(logging, Config.LOG_LEVEL))
+log_level = getattr(logging, Config.LOG_LEVEL.upper(), logging.INFO)
+logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 # Состояния FSM

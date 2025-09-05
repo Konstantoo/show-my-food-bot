@@ -17,7 +17,7 @@ class Config:
     
     # Настройки приложения
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
     
     # Настройки сессий
     SESSION_TIMEOUT_MINUTES = 30
