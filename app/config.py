@@ -26,9 +26,9 @@ class Config:
     CARD_WIDTH = 1280
     CARD_HEIGHT = 720
     
-    # Настройки фактов
-    MAX_FACTS_PER_DISH = 3
-    MAX_FALLBACK_FACTS = 2
+    # Настройки советов по фото
+    MAX_ADVICE_PER_PHOTO = 5
+    MAX_ADDITIONAL_ADVICE = 3
     
     @classmethod
     def validate(cls):

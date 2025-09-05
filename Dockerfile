@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем исходный код
 COPY app/ ./app/
-COPY run_bot.py .
+COPY run_photo_bot.py .
 
 # Создаем пользователя для безопасности
 RUN useradd --create-home --shell /bin/bash botuser
@@ -32,4 +32,4 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # Команда по умолчанию
-CMD ["python", "run_bot.py"]
+CMD ["python", "run_photo_bot.py"]
